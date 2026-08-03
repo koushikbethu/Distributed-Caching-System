@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "distributed-cache"
+version = "1.0.0"
+description = "Production-grade distributed caching system"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[project.scripts]
+dcache = "src.main:main"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["src*"]

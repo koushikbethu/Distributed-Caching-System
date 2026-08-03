@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package cache;
+
+// Cache Service for data operations
+service CacheService {
+  rpc Get (GetRequest) returns (GetResponse);
+  rpc Set (SetRequest) returns (SetResponse);
+  rpc Delete (DeleteRequest) returns (DeleteResponse);
+  rpc Exists (ExistsRequest) returns (ExistsResponse);
+  
+  // Replication operations
+  rpc BulkSync (BulkSyncRequest) returns (BulkSyncResponse);
+  rpc Replicate (ReplicateRequest) returns (ReplicateResponse);
+}
+
+// Gossip Service for cluster membership
+service GossipService {
+  rpc Ping (PingRequest) returns (PingResponse);
+  rpc PingReq (PingReqRequest) returns (PingReqResponse);
+  rpc SyncMembership (SyncMembershipRequest) returns (SyncMembershipResponse);
+}
+
+// Messages for CacheService
+message GetRequest {
+  string key = 1;
+}
+
+message GetResponse {
+  string key = 1;
+  string value = 2;
+  bool found = 3;
+  string node_id = 4;
+}
+
+message SetRequest {
+  string key = 1;
+  string value = 2;
+  optional int32 ttl = 3;
+}
+
+message SetResponse {
+  string key = 1;
+  bool stored = 2;
+  string node_id = 3;
+}
+
+message DeleteRequest {
+  string key = 1;
+}
+
+message DeleteResponse {
+  string key = 1;
+  bool deleted = 2;
+}
+
+message ExistsRequest {
+  string key = 1;
+}
+
+message ExistsResponse {
+  string key = 1;
+  bool exists = 2;
+}
+
+message CacheEntryProto {
+  string key = 1;
+  string value = 2;
+  double created_at = 3;
+  double last_accessed = 4;
+  int32 access_count = 5;
+  optional int32 ttl = 6;
+  optional double expires_at = 7;
+}
+
+message BulkSyncRequest {
+  repeated CacheEntryProto entries = 1;
+  string source_node_id = 2;
+}
+
+message BulkSyncResponse {
+  int32 synced_count = 1;
+}
+
+message ReplicateRequest {
+  string key = 1;
+  string value = 2;
+  optional int32 ttl = 3;
+  string operation = 4; // "set" or "delete"
+  int64 sequence_number = 5;
+}
+
+message ReplicateResponse {
+  bool success = 1;
+}
+
+// Messages for GossipService
+message NodeInfoProto {
+  string node_id = 1;
+  string host = 2;
+  int32 rest_port = 3;
+  int32 grpc_port = 4;
+  int32 state = 5; // Enum value
+  double last_heartbeat = 6;
+  int32 incarnation = 7;
+}
+
+message PingRequest {
+  NodeInfoProto sender = 1;
+  repeated NodeInfoProto membership_updates = 2;
+}
+
+message PingResponse {
+  NodeInfoProto sender = 1;
+  repeated NodeInfoProto membership_updates = 2;
+  bool ack = 3;
+}
+
+message PingReqRequest {
+  string target_node_id = 1;
+  NodeInfoProto sender = 2;
+}
+
+message PingReqResponse {
+  bool success = 1;
+}
+
+message SyncMembershipRequest {
+  string node_id = 1;
+  repeated NodeInfoProto known_nodes = 2;
+}
+
+message SyncMembershipResponse {
+  repeated NodeInfoProto missing_nodes = 1;
+}
